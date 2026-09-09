@@ -1,0 +1,4 @@
+flight_id,airport,scheduled_out,actual_out
+1,EGLL,12:00,12:15
+2,EDDF,13:20,13:45
+3,EHAM,14:10,14:25
