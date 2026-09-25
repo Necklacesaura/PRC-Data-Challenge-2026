@@ -1,14 +1,9 @@
-# PRC-Data-Challenge-2026
-PRC Challenge 2026
+# ✈️ PRC Data Challenge 2026 (Team: zestful-jewel)
 
-This repository is created as part of my participation in the PRC Data Challenge 2026.  
-It is currently in the preparation phase and will host:
+This repository contains the end-to-end data pipeline, feature engineering frameworks, and machine learning models developed for the **EUROCONTROL PRC Data Challenge 2026**.
 
-- Dataset exploration notes  
-- Baseline model planning  
-- Visualizations of airport performance  
-- Documentation for reproducibility  
+🌍 **Built by the creator of (https://liveearthmap.com)** — An independent global spatial analytics and live mapping platform.
 
-## Status
-
-Preparation – no solution code published yet.
+## 🚀 Current Status
+- **V1 Submission:** Completed Successfully (Baseline Score Established).
+- **V2 Optimization:** Active development phase (Focusing on safe feature expansion).
