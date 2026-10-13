@@ -4,181 +4,177 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRC 2026 — Taxi-Out Prediction · Team zestful-jewel</title>
-<meta name="description" content="Final results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, final RMSE 288.75, rank 108 of 192.">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="description" content="Results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, final RMSE 288.75, rank 108 of 192.">
 <style>
-  body { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: #1f2933; margin: 0; }
-  .card { background: #ffffff; border: 1px solid #e3e8ee; border-radius: 12px; }
-  .accent { color: #1a73e8; }
-  .btn { background: #1a73e8; color: #fff; border-radius: 8px; }
-  .btn:hover { background: #1558c0; }
-  .hub.active { border-color: #1a73e8; background: #f0f6ff; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: #1f2933; margin: 0; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  .card { background: #fff; border: 1px solid #e3e8ee; border-radius: 12px; padding: 24px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 800px) { .grid2, .grid4 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .grid2, .grid4 { grid-template-columns: 1fr; } }
+  .muted { color: #6b7a89; }
+  .label { font-size: 13px; color: #6b7a89; }
+  .big { font-size: 30px; font-weight: 600; margin-top: 8px; }
+  .badge { display: inline-block; padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+  .badge.blue { background: #1a73e8; color: #fff; }
+  .badge.gray { background: #eef1f5; }
+  .badge.line { border: 1px solid #e3e8ee; }
+
+  /* bar chart (score journey) */
+  .bars { display: flex; align-items: flex-end; gap: 40px; height: 220px; padding: 10px 10px 0; border-bottom: 2px solid #e3e8ee; }
+  .bar { flex: 1; max-width: 120px; border-radius: 6px 6px 0 0; position: relative; }
+  .bar span { position: absolute; top: -24px; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 14px; }
+  .bar-labels { display: flex; gap: 40px; padding: 8px 10px 0; }
+  .bar-labels div { flex: 1; max-width: 120px; text-align: center; font-size: 13px; color: #6b7a89; }
+
+  /* horizontal bars (folds) */
+  .hrow { margin-top: 14px; }
+  .hrow .hlabel { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .track { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .track .name { width: 110px; font-size: 12px; color: #6b7a89; }
+  .track .rail { flex: 1; }
+  .fill { height: 22px; border-radius: 4px; }
+  .fill b { font-size: 12px; font-weight: 600; color: #1f2933; margin-left: 8px; position: relative; top: 1px; white-space: nowrap; }
+
+  /* donut legend */
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 14px; font-size: 13px; }
+  .legend div::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; }
+
+  /* hub selector (no JS) */
+  .hubs input { display: none; }
+  .hubgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .hubgrid label { border: 1px solid #e3e8ee; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; cursor: pointer; background: #fff; }
+  .hubgrid label b { display: block; font-size: 14px; }
+  .hubs .info { display: none; margin-top: 12px; font-size: 13px; color: #6b7a89; }
+  #h1:checked ~ .hubgrid label[for="h1"], #h2:checked ~ .hubgrid label[for="h2"], #h3:checked ~ .hubgrid label[for="h3"],
+  #h4:checked ~ .hubgrid label[for="h4"], #h5:checked ~ .hubgrid label[for="h5"], #h6:checked ~ .hubgrid label[for="h6"] {
+    border-color: #1a73e8; background: #f0f6ff; }
+  #h1:checked ~ .i1, #h2:checked ~ .i2, #h3:checked ~ .i3, #h4:checked ~ .i4, #h5:checked ~ .i5, #h6:checked ~ .i6 { display: block; }
+
+  .pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  @media (max-width: 800px) { .pipe { grid-template-columns: 1fr 1fr; } }
+  .step { background: #f2f4f7; border-radius: 10px; padding: 18px; font-size: 13px; }
+  .step b { font-size: 14px; }
+  header { border-bottom: 1px solid #e3e8ee; background: rgba(255,255,255,.8); position: sticky; top: 0; z-index: 10; }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; height: 56px; }
+  main { padding: 40px 0 24px; }
+  section { margin-top: 40px; }
+  footer { text-align: center; font-size: 12px; color: #6b7a89; padding: 12px 0 40px; }
+  h1 { font-size: 42px; margin: 0; line-height: 1.15; }
+  h2 { font-size: 16px; margin: 0 0 4px; }
+  p.lead { font-size: 18px; color: #6b7a89; max-width: 640px; margin-top: 14px; }
 </style>
 </head>
 <body>
 
-<header class="border-b" style="border-color:#e3e8ee;background:#ffffffcc;backdrop-filter:blur(6px);position:sticky;top:0;z-index:10">
-  <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-    <span class="font-semibold">PRC 2026 · Taxi-Out Prediction</span>
-    <span class="text-sm" style="color:#6b7a89">Team zestful-jewel</span>
-  </div>
-</header>
+<header><div class="wrap">
+  <span style="font-weight:600">PRC 2026 · Taxi-Out Prediction</span>
+  <span class="muted" style="font-size:14px">Team zestful-jewel</span>
+</div></header>
 
-<main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+<div class="wrap">
+<main>
 
-  <!-- HERO -->
   <section>
-    <h1 class="text-4xl md:text-5xl font-semibold tracking-tight">Predicting taxi-out time of departing flights</h1>
-    <p class="mt-4 text-lg max-w-2xl" style="color:#6b7a89">
-      A gradient-boosting pipeline trained on 12 months of EUROCONTROL ADR data —
-      ~2.1 million departures — built for the EUROCONTROL PRC Data Challenge 2026.
-    </p>
-    <div class="mt-6 flex flex-wrap gap-3">
-      <span class="btn text-sm font-medium px-4 py-2">Final RMSE 288.75</span>
-      <span class="text-sm font-medium px-4 py-2 rounded-lg" style="background:#eef1f5">Rank 108 / 192</span>
-      <span class="text-sm px-4 py-2 rounded-lg border" style="border-color:#e3e8ee">CatBoost · Kaggle GPU</span>
-      <span class="text-sm px-4 py-2 rounded-lg border" style="border-color:#e3e8ee">35 features · 7 models</span>
+    <h1>Predicting taxi-out time of departing flights</h1>
+    <p class="lead">A CatBoost pipeline trained on 12 months of EUROCONTROL ADR data — ~2.1 million departures — for the EUROCONTROL PRC Data Challenge 2026.</p>
+    <div style="margin-top:20px">
+      <span class="badge blue">Final RMSE 288.75</span>
+      <span class="badge gray">Rank 108 / 192</span>
+      <span class="badge line">CatBoost · Kaggle GPU</span>
+      <span class="badge line">35 features · 7 models</span>
     </div>
   </section>
 
-  <!-- STATS -->
-  <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="card p-6">
-      <p class="text-sm" style="color:#6b7a89">RMSE improvement</p>
-      <p class="mt-2 text-3xl font-semibold">−52.4%</p>
-      <p class="mt-1 text-xs" style="color:#6b7a89">607.15 → 288.75</p>
-    </div>
-    <div class="card p-6">
-      <p class="text-sm" style="color:#6b7a89">Leaderboard climb</p>
-      <p class="mt-2 text-3xl font-semibold">+68 <span class="text-base font-normal" style="color:#6b7a89">places</span></p>
-      <p class="mt-1 text-xs" style="color:#6b7a89">rank 176 → 108</p>
-    </div>
-    <div class="card p-6">
-      <p class="text-sm" style="color:#6b7a89">Training departures</p>
-      <p class="mt-2 text-3xl font-semibold">≈2.1M</p>
-      <p class="mt-1 text-xs" style="color:#6b7a89">12 months · 2025</p>
-    </div>
-    <div class="card p-6">
-      <p class="text-sm" style="color:#6b7a89">Submissions</p>
-      <p class="mt-2 text-3xl font-semibold">5</p>
-      <p class="mt-1 text-xs" style="color:#6b7a89">best one counts</p>
-    </div>
+  <section class="grid4">
+    <div class="card"><p class="label">RMSE improvement</p><p class="big">−52.4%</p><p class="label">607.15 → 288.75</p></div>
+    <div class="card"><p class="label">Leaderboard climb</p><p class="big">+68</p><p class="label">rank 176 → 108</p></div>
+    <div class="card"><p class="label">Training departures</p><p class="big">≈2.1M</p><p class="label">12 months · 2025</p></div>
+    <div class="card"><p class="label">Submissions</p><p class="big">5</p><p class="label">best one counts</p></div>
   </section>
 
-  <!-- CHARTS -->
-  <section class="grid md:grid-cols-2 gap-4">
-    <div class="card p-6">
-      <p class="font-medium">Score journey <span class="text-sm font-normal" style="color:#6b7a89">— lower is better</span></p>
-      <div class="mt-4" style="height:240px"><canvas id="journey"></canvas></div>
-    </div>
-    <div class="card p-6">
-      <p class="font-medium">Validation folds <span class="text-sm font-normal" style="color:#6b7a89">— expanding-window</span></p>
-      <div class="mt-4" style="height:240px"><canvas id="folds"></canvas></div>
-    </div>
-  </section>
-
-  <section class="grid md:grid-cols-2 gap-4">
-    <div class="card p-6">
-      <p class="font-medium">Feature groups <span class="text-sm font-normal" style="color:#6b7a89">— 35 engineered features</span></p>
-      <div class="mt-4" style="height:240px"><canvas id="features"></canvas></div>
-    </div>
-    <div class="card p-6">
-      <p class="font-medium">Hub airports <span class="text-sm font-normal" style="color:#6b7a89">— dedicated models, click one</span></p>
-      <div id="hubs" class="mt-4 grid grid-cols-3 gap-3"></div>
-      <p id="hubInfo" class="mt-4 text-sm" style="color:#6b7a89">Each hub gets its own CatBoost model; predictions are blended 70% airport / 30% global.</p>
-    </div>
-  </section>
-
-  <!-- PIPELINE -->
-  <section class="card p-8">
-    <p class="font-medium">Pipeline</p>
-    <div class="mt-6 flex flex-col md:flex-row gap-3">
-      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
-        <p class="font-semibold">1 · ADR data</p>
-        <p class="mt-1" style="color:#6b7a89">12 monthly files, DEP rows, raw taxi-out target</p>
+  <section class="grid2">
+    <div class="card">
+      <h2>Score journey <span class="muted" style="font-weight:400">— lower is better</span></h2>
+      <div class="bars">
+        <div class="bar" style="height:93%;background:#a9c6f3"><span>607.15</span></div>
+        <div class="bar" style="height:44%;background:#1a73e8"><span>288.75</span></div>
       </div>
-      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
-        <p class="font-semibold">2 · Features</p>
-        <p class="mt-1" style="color:#6b7a89">Flight, schedule, congestion, historical stats — no post-off-block leakage</p>
+      <div class="bar-labels"><div>First submission</div><div>Final submission</div></div>
+    </div>
+    <div class="card">
+      <h2>Validation folds <span class="muted" style="font-weight:400">— expanding-window</span></h2>
+      <div class="hrow">
+        <div class="hlabel">July 2025 fold (6 months of training data)</div>
+        <div class="track"><span class="name">Baseline median</span><div class="rail"><div class="fill" style="width:90%;background:#a9c6f3"><b>719.99</b></div></div></div>
+        <div class="track"><span class="name">Model</span><div class="rail"><div class="fill" style="width:83%;background:#1a73e8"><b>661.82</b></div></div></div>
       </div>
-      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
-        <p class="font-semibold">3 · Models</p>
-        <p class="mt-1" style="color:#6b7a89">1 global CatBoost + 6 airport models, GPU, 900 trees</p>
-      </div>
-      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
-        <p class="font-semibold">4 · Blend &amp; submit</p>
-        <p class="mt-1" style="color:#6b7a89">70/30 hub blend, validated with expanding-time folds</p>
+      <div class="hrow">
+        <div class="hlabel">Dec 2025 fold (11 months of training data)</div>
+        <div class="track"><span class="name">Baseline median</span><div class="rail"><div class="fill" style="width:61%;background:#a9c6f3"><b>487.15</b></div></div></div>
+        <div class="track"><span class="name">Model</span><div class="rail"><div class="fill" style="width:54%;background:#1a73e8"><b>431.42</b></div></div></div>
       </div>
     </div>
   </section>
 
-  <footer class="text-center text-xs pb-6" style="color:#6b7a89">
-    EUROCONTROL PRC Data Challenge 2026 · Sep – Oct 2026 · built by Mohammed Hassen ·
-    sources: training-run output + official leaderboard
-  </footer>
+  <section class="grid2">
+    <div class="card">
+      <h2>Feature groups <span class="muted" style="font-weight:400">— 35 engineered features</span></h2>
+      <div style="display:flex;justify-content:center;margin-top:16px">
+        <svg width="180" height="180" viewBox="0 0 160 160">
+          <g transform="rotate(-90 80 80)">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#1a73e8" stroke-width="30" stroke-dasharray="107.71 269.28" stroke-dashoffset="0"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#5c94ea" stroke-width="30" stroke-dasharray="107.71 269.28" stroke-dashoffset="-107.71"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#9abdf4" stroke-width="30" stroke-dasharray="107.71 269.28" stroke-dashoffset="-215.42"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#c6d9fa" stroke-width="30" stroke-dasharray="53.86 323.13" stroke-dashoffset="-323.14"/>
+          </g>
+          <text x="80" y="77" text-anchor="middle" font-size="26" font-weight="600" fill="#1f2933">35</text>
+          <text x="80" y="95" text-anchor="middle" font-size="10" fill="#6b7a89">features</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <div><span style="color:#1a73e8">■</span> Flight &amp; airport (10)</div>
+        <div><span style="color:#5c94ea">■</span> Schedule &amp; timing (10)</div>
+        <div><span style="color:#9abdf4">■</span> Congestion (10)</div>
+        <div><span style="color:#c6d9fa">■</span> Historical stats (5)</div>
+      </div>
+    </div>
+    <div class="card hubs">
+      <h2>Hub airports <span class="muted" style="font-weight:400">— click one</span></h2>
+      <input type="radio" name="hub" id="h1" checked><input type="radio" name="hub" id="h2"><input type="radio" name="hub" id="h3"><input type="radio" name="hub" id="h4"><input type="radio" name="hub" id="h5"><input type="radio" name="hub" id="h6">
+      <div class="hubgrid">
+        <label for="h1"><b>EGLL</b>London Heathrow</label>
+        <label for="h2"><b>LFPG</b>Paris CDG</label>
+        <label for="h3"><b>EDDF</b>Frankfurt</label>
+        <label for="h4"><b>EHAM</b>Amsterdam</label>
+        <label for="h5"><b>LIRF</b>Rome Fiumicino</label>
+        <label for="h6"><b>LTFM</b>Istanbul</label>
+      </div>
+      <p class="info i1">EGLL — one of the busiest hubs in the set; its dedicated model captures local runway-layout and stand congestion patterns.</p>
+      <p class="info i2">LFPG — multi-terminal layout with distinctive stand-to-runway distances; strong beneficiary of the airport-specific model.</p>
+      <p class="info i3">EDDF — high departure density per runway-hour makes congestion features especially informative here.</p>
+      <p class="info i4">EHAM — heavy coordinated scheduling; queue-position features carry strong signal.</p>
+      <p class="info i5">LIRF — seasonal peaks dominate; historical month-by-month statistics help most here.</p>
+      <p class="info i6">LTFM — newer megahub with growing traffic; the dedicated model tracks its rapid ramp-up.</p>
+      <p class="muted" style="font-size:13px;margin-top:10px">Each hub gets its own CatBoost model; predictions are blended 70% airport / 30% global.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Pipeline</h2>
+    <div class="pipe">
+      <div class="step"><b>1 · ADR data</b><br>12 monthly files, DEP rows, raw taxi-out target</div>
+      <div class="step"><b>2 · Features</b><br>Flight, schedule, congestion, historical stats — no post-off-block leakage</div>
+      <div class="step"><b>3 · Models</b><br>1 global CatBoost + 6 airport models, GPU, 900 trees</div>
+      <div class="step"><b>4 · Blend &amp; submit</b><br>70/30 hub blend, validated with expanding-time folds</div>
+    </div>
+  </section>
+
+  <footer>EUROCONTROL PRC Data Challenge 2026 · Sep – Oct 2026 · built by Mohammed Hassen · sources: training-run output + official leaderboard</footer>
+
 </main>
-
-<script>
-(function () {
-  const A = '#1a73e8', MUTED = '#6b7a89', BORDER = '#e3e8ee';
-  Chart.defaults.color = MUTED;
-  const baseOpts = { responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } },
-    scales: { y: { beginAtZero: true, grid: { color: BORDER } }, x: { grid: { display: false } } } };
-
-  new Chart(document.getElementById('journey'), {
-    type: 'bar',
-    data: { labels: ['First submission', 'Final submission'],
-      datasets: [{ data: [607.15, 288.75],
-        backgroundColor: ['#a9c6f3', A], hoverBackgroundColor: ['#a9c6f3', A],
-        borderWidth: 0, borderRadius: 6, maxBarThickness: 90 }] },
-    options: { ...baseOpts, plugins: { legend: { display: false } } }
-  });
-
-  new Chart(document.getElementById('folds'), {
-    type: 'bar',
-    data: { labels: ['July 2025 fold', 'Dec 2025 fold'],
-      datasets: [
-        { label: 'Baseline median', data: [719.99, 487.15], backgroundColor: '#a9c6f3', hoverBackgroundColor: '#a9c6f3', borderWidth: 0, borderRadius: 6 },
-        { label: 'Model', data: [661.82, 431.42], backgroundColor: A, hoverBackgroundColor: A, borderWidth: 0, borderRadius: 6 }
-      ] },
-    options: baseOpts
-  });
-
-  new Chart(document.getElementById('features'), {
-    type: 'doughnut',
-    data: { labels: ['Flight & airport (10)', 'Schedule & timing (10)', 'Congestion (10)', 'Historical stats (5)'],
-      datasets: [{ data: [10, 10, 10, 5],
-        backgroundColor: [A, '#5c94ea', '#9abdf4', '#c6d9fa'],
-        hoverBackgroundColor: [A, '#5c94ea', '#9abdf4', '#c6d9fa'], borderWidth: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } } }
-  });
-
-  const hubs = [
-    { code: 'EGLL', name: 'London Heathrow', note: 'One of the two busiest hubs in the set — its dedicated model captures the local runway-layout and stand congestion patterns.' },
-    { code: 'LFPG', name: 'Paris Charles de Gaulle', note: 'Multi-terminal layout with distinctive stand-to-runway distances — strong beneficiary of the airport-specific model.' },
-    { code: 'EDDF', name: 'Frankfurt', note: 'High departure density per runway-hour makes the congestion features especially informative here.' },
-    { code: 'EHAM', name: 'Amsterdam Schiphol', note: 'Heavy coordinated scheduling — queue-position features carry strong signal.' },
-    { code: 'LIRF', name: 'Rome Fiumicino', note: 'Seasonal peaks dominate — historical month-by-month statistics help most here.' },
-    { code: 'LTFM', name: 'Istanbul', note: 'Newer megahub with growing traffic — the dedicated model tracks its rapid ramp-up.' }
-  ];
-  const grid = document.getElementById('hubs');
-  const info = document.getElementById('hubInfo');
-  hubs.forEach(h => {
-    const d = document.createElement('button');
-    d.className = 'hub rounded-lg p-3 text-center text-sm border';
-    d.style.borderColor = '#e3e8ee';
-    d.innerHTML = '<span class="font-semibold">' + h.code + '</span><br><span style="color:#6b7a89">' + h.name + '</span>';
-    d.onclick = () => {
-      document.querySelectorAll('.hub').forEach(x => x.classList.remove('active'));
-      d.classList.add('active');
-      info.textContent = h.code + ' — ' + h.note;
-    };
-    [grid.app](https://grid.app)endChild(d);
-  });
-})();
-</script>
+</div>
 </body>
 </html>
