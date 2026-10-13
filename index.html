@@ -4,30 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRC 2026 — Taxi-Out Prediction · Team zestful-jewel</title>
-<meta name="description" content="Animated results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, final RMSE 288.75, rank 108 of 192.">
+<meta name="description" content="Final results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, final RMSE 288.75, rank 108 of 192.">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: #1f2933; margin: 0; overflow-x: hidden; }
+  body { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: #1f2933; margin: 0; }
   .card { background: #ffffff; border: 1px solid #e3e8ee; border-radius: 12px; }
+  .accent { color: #1a73e8; }
   .btn { background: #1a73e8; color: #fff; border-radius: 8px; }
   .btn:hover { background: #1558c0; }
-
-  /* hero runway with moving plane */
-  .runway { position: relative; height: 70px; margin-top: 24px; border-bottom: 2px dashed #c9d3de; }
-  .plane  { position: absolute; bottom: 8px; left: -60px; animation: taxi 9s linear infinite; }
-  @keyframes taxi  { 0% { transform: translateX(0); } 85% { transform: translateX(105vw); } 100% { transform: translateX(105vw) translateY(-40px) rotate(-12deg); } }
-
-  /* scroll reveal */
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
-  .reveal.in { opacity: 1; transform: none; }
-
-  /* counting numbers pulse */
-  .count.pulse { animation: pop .4s ease; }
-  @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .hub.active { border-color: #1a73e8; background: #f0f6ff; }
 </style>
 </head>
 <body>
+
+<header class="border-b" style="border-color:#e3e8ee;background:#ffffffcc;backdrop-filter:blur(6px);position:sticky;top:0;z-index:10">
+  <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+    <span class="font-semibold">PRC 2026 · Taxi-Out Prediction</span>
+    <span class="text-sm" style="color:#6b7a89">Team zestful-jewel</span>
+  </div>
+</header>
 
 <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
 
@@ -35,91 +31,84 @@
   <section>
     <h1 class="text-4xl md:text-5xl font-semibold tracking-tight">Predicting taxi-out time of departing flights</h1>
     <p class="mt-4 text-lg max-w-2xl" style="color:#6b7a89">
-      A CatBoost pipeline trained on 12 months of EUROCONTROL ADR data — ~2.1 million departures —
-      for the EUROCONTROL PRC Data Challenge 2026.
+      A gradient-boosting pipeline trained on 12 months of EUROCONTROL ADR data —
+      ~2.1 million departures — built for the EUROCONTROL PRC Data Challenge 2026.
     </p>
     <div class="mt-6 flex flex-wrap gap-3">
-      <span class="btn text-sm font-medium px-4 py-2">Final RMSE <span class="counter" data-target="288.75" data-decimals="2"></span></span>
-      <span class="text-sm font-medium px-4 py-2 rounded-lg" style="background:#eef1f5">Rank <span class="counter" data-target="108"></span> / 192</span>
+      <span class="btn text-sm font-medium px-4 py-2">Final RMSE 288.75</span>
+      <span class="text-sm font-medium px-4 py-2 rounded-lg" style="background:#eef1f5">Rank 108 / 192</span>
       <span class="text-sm px-4 py-2 rounded-lg border" style="border-color:#e3e8ee">CatBoost · Kaggle GPU</span>
-    </div>
-    <div class="runway">
-      <div class="plane">
-        <svg width="46" height="46" viewBox="0 0 24 24" fill="#1a73e8"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-      </div>
+      <span class="text-sm px-4 py-2 rounded-lg border" style="border-color:#e3e8ee">35 features · 7 models</span>
     </div>
   </section>
 
-  <!-- STATS (count up on scroll) -->
+  <!-- STATS -->
   <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="card p-6 reveal">
+    <div class="card p-6">
       <p class="text-sm" style="color:#6b7a89">RMSE improvement</p>
-      <p class="mt-2 text-3xl font-semibold">−<span class="counter" data-target="52.4" data-decimals="1"></span>%</p>
+      <p class="mt-2 text-3xl font-semibold">−52.4%</p>
       <p class="mt-1 text-xs" style="color:#6b7a89">607.15 → 288.75</p>
     </div>
-    <div class="card p-6 reveal">
+    <div class="card p-6">
       <p class="text-sm" style="color:#6b7a89">Leaderboard climb</p>
-      <p class="mt-2 text-3xl font-semibold">+<span class="counter" data-target="68"></span></p>
+      <p class="mt-2 text-3xl font-semibold">+68 <span class="text-base font-normal" style="color:#6b7a89">places</span></p>
       <p class="mt-1 text-xs" style="color:#6b7a89">rank 176 → 108</p>
     </div>
-    <div class="card p-6 reveal">
+    <div class="card p-6">
       <p class="text-sm" style="color:#6b7a89">Training departures</p>
-      <p class="mt-2 text-3xl font-semibold"><span class="counter" data-target="2.1" data-decimals="1"></span>M</p>
+      <p class="mt-2 text-3xl font-semibold">≈2.1M</p>
       <p class="mt-1 text-xs" style="color:#6b7a89">12 months · 2025</p>
     </div>
-    <div class="card p-6 reveal">
-      <p class="text-sm" style="color:#6b7a89">Models trained</p>
-      <p class="mt-2 text-3xl font-semibold"><span class="counter" data-target="7"></span></p>
-      <p class="mt-1 text-xs" style="color:#6b7a89">1 global + 6 airport</p>
+    <div class="card p-6">
+      <p class="text-sm" style="color:#6b7a89">Submissions</p>
+      <p class="mt-2 text-3xl font-semibold">5</p>
+      <p class="mt-1 text-xs" style="color:#6b7a89">best one counts</p>
     </div>
   </section>
 
   <!-- CHARTS -->
   <section class="grid md:grid-cols-2 gap-4">
-    <div class="card p-6 reveal">
-      <div class="flex items-center justify-between">
-        <p class="font-medium">Score journey <span class="text-sm font-normal" style="color:#6b7a89">— lower is better</span></p>
-        <button id="replay" class="text-sm px-3 py-1 rounded-lg border" style="border-color:#e3e8ee">↻ Replay</button>
-      </div>
+    <div class="card p-6">
+      <p class="font-medium">Score journey <span class="text-sm font-normal" style="color:#6b7a89">— lower is better</span></p>
       <div class="mt-4" style="height:240px"><canvas id="journey"></canvas></div>
     </div>
-    <div class="card p-6 reveal">
+    <div class="card p-6">
       <p class="font-medium">Validation folds <span class="text-sm font-normal" style="color:#6b7a89">— expanding-window</span></p>
       <div class="mt-4" style="height:240px"><canvas id="folds"></canvas></div>
     </div>
   </section>
 
   <section class="grid md:grid-cols-2 gap-4">
-    <div class="card p-6 reveal">
+    <div class="card p-6">
       <p class="font-medium">Feature groups <span class="text-sm font-normal" style="color:#6b7a89">— 35 engineered features</span></p>
       <div class="mt-4" style="height:240px"><canvas id="features"></canvas></div>
     </div>
-    <div class="card p-6 reveal">
-      <p class="font-medium">Hub airports <span class="text-sm font-normal" style="color:#6b7a89">— click one</span></p>
+    <div class="card p-6">
+      <p class="font-medium">Hub airports <span class="text-sm font-normal" style="color:#6b7a89">— dedicated models, click one</span></p>
       <div id="hubs" class="mt-4 grid grid-cols-3 gap-3"></div>
       <p id="hubInfo" class="mt-4 text-sm" style="color:#6b7a89">Each hub gets its own CatBoost model; predictions are blended 70% airport / 30% global.</p>
     </div>
   </section>
 
-  <!-- PIPELINE (animated flow) -->
-  <section class="card p-8 reveal" id="pipeline">
+  <!-- PIPELINE -->
+  <section class="card p-8">
     <p class="font-medium">Pipeline</p>
     <div class="mt-6 flex flex-col md:flex-row gap-3">
-      <div class="flex-1 rounded-lg p-5 text-sm step" style="background:#f2f4f7">
+      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
         <p class="font-semibold">1 · ADR data</p>
-        <p class="mt-1" style="color:#6b7a89">12 monthly files, DEP rows, raw target</p>
+        <p class="mt-1" style="color:#6b7a89">12 monthly files, DEP rows, raw taxi-out target</p>
       </div>
-      <div class="flex-1 rounded-lg p-5 text-sm step" style="background:#f2f4f7">
+      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
         <p class="font-semibold">2 · Features</p>
-        <p class="mt-1" style="color:#6b7a89">Flight, schedule, congestion, history — leakage-safe</p>
+        <p class="mt-1" style="color:#6b7a89">Flight, schedule, congestion, historical stats — no post-off-block leakage</p>
       </div>
-      <div class="flex-1 rounded-lg p-5 text-sm step" style="background:#f2f4f7">
+      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
         <p class="font-semibold">3 · Models</p>
-        <p class="mt-1" style="color:#6b7a89">1 global + 6 airport models, GPU, 900 trees</p>
+        <p class="mt-1" style="color:#6b7a89">1 global CatBoost + 6 airport models, GPU, 900 trees</p>
       </div>
-      <div class="flex-1 rounded-lg p-5 text-sm step" style="background:#f2f4f7">
+      <div class="flex-1 rounded-lg p-5 text-sm" style="background:#f2f4f7">
         <p class="font-semibold">4 · Blend &amp; submit</p>
-        <p class="mt-1" style="color:#6b7a89">70/30 hub blend, expanding-time folds</p>
+        <p class="mt-1" style="color:#6b7a89">70/30 hub blend, validated with expanding-time folds</p>
       </div>
     </div>
   </section>
@@ -138,21 +127,14 @@
     plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } },
     scales: { y: { beginAtZero: true, grid: { color: BORDER } }, x: { grid: { display: false } } } };
 
-  function journeyChart(animate) {
-    const el = document.getElementById('journey');
-    const old = Chart.getChart(el); if (old) old.destroy();
-    return new Chart(el, {
-      type: 'bar',
-      data: { labels: ['First submission', 'Final submission'],
-        datasets: [{ data: [607.15, 288.75],
-          backgroundColor: ['#a9c6f3', A], hoverBackgroundColor: ['#a9c6f3', A],
-          borderWidth: 0, borderRadius: 6, maxBarThickness: 90 }] },
-      options: { ...baseOpts, animation: animate ? { duration: 1600, easing: 'easeOutQuart' } : false,
-        plugins: { legend: { display: false } } }
-    });
-  }
-  journeyChart(true);
-  document.getElementById('replay').onclick = () => journeyChart(true);
+  new Chart(document.getElementById('journey'), {
+    type: 'bar',
+    data: { labels: ['First submission', 'Final submission'],
+      datasets: [{ data: [607.15, 288.75],
+        backgroundColor: ['#a9c6f3', A], hoverBackgroundColor: ['#a9c6f3', A],
+        borderWidth: 0, borderRadius: 6, maxBarThickness: 90 }] },
+    options: { ...baseOpts, plugins: { legend: { display: false } } }
+  });
 
   new Chart(document.getElementById('folds'), {
     type: 'bar',
@@ -161,7 +143,7 @@
         { label: 'Baseline median', data: [719.99, 487.15], backgroundColor: '#a9c6f3', hoverBackgroundColor: '#a9c6f3', borderWidth: 0, borderRadius: 6 },
         { label: 'Model', data: [661.82, 431.42], backgroundColor: A, hoverBackgroundColor: A, borderWidth: 0, borderRadius: 6 }
       ] },
-    options: { ...baseOpts, animation: { duration: 1400, delay: (c) => c.datasetIndex * 300 + c.index * 200 } }
+    options: baseOpts
   });
 
   new Chart(document.getElementById('features'), {
@@ -171,69 +153,31 @@
         backgroundColor: [A, '#5c94ea', '#9abdf4', '#c6d9fa'],
         hoverBackgroundColor: [A, '#5c94ea', '#9abdf4', '#c6d9fa'], borderWidth: 0 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
-      animation: { animateRotate: true, duration: 1500 },
       plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } } }
   });
 
   const hubs = [
-    { code: 'EGLL', name: 'London Heathrow', note: 'EGLL — one of the two busiest hubs in the set; its dedicated model captures local runway-layout and stand congestion patterns.' },
-    { code: 'LFPG', name: 'Paris CDG', note: 'LFPG — multi-terminal layout with distinctive stand-to-runway distances; strong beneficiary of the airport-specific model.' },
-    { code: 'EDDF', name: 'Frankfurt', note: 'EDDF — high departure density per runway-hour makes the congestion features especially informative here.' },
-    { code: 'EHAM', name: 'Amsterdam', note: 'EHAM — heavy coordinated scheduling; queue-position features carry strong signal.' },
-    { code: 'LIRF', name: 'Rome Fiumicino', note: 'LIRF — seasonal peaks dominate; historical month-by-month statistics help most here.' },
-    { code: 'LTFM', name: 'Istanbul', note: 'LTFM — newer megahub with growing traffic; the dedicated model tracks its rapid ramp-up.' }
+    { code: 'EGLL', name: 'London Heathrow', note: 'One of the two busiest hubs in the set — its dedicated model captures the local runway-layout and stand congestion patterns.' },
+    { code: 'LFPG', name: 'Paris Charles de Gaulle', note: 'Multi-terminal layout with distinctive stand-to-runway distances — strong beneficiary of the airport-specific model.' },
+    { code: 'EDDF', name: 'Frankfurt', note: 'High departure density per runway-hour makes the congestion features especially informative here.' },
+    { code: 'EHAM', name: 'Amsterdam Schiphol', note: 'Heavy coordinated scheduling — queue-position features carry strong signal.' },
+    { code: 'LIRF', name: 'Rome Fiumicino', note: 'Seasonal peaks dominate — historical month-by-month statistics help most here.' },
+    { code: 'LTFM', name: 'Istanbul', note: 'Newer megahub with growing traffic — the dedicated model tracks its rapid ramp-up.' }
   ];
   const grid = document.getElementById('hubs');
   const info = document.getElementById('hubInfo');
   hubs.forEach(h => {
     const d = document.createElement('button');
-    d.className = 'rounded-lg p-3 text-center text-sm border';
+    d.className = 'hub rounded-lg p-3 text-center text-sm border';
     d.style.borderColor = '#e3e8ee';
     d.innerHTML = '<span class="font-semibold">' + h.code + '</span><br><span style="color:#6b7a89">' + h.name + '</span>';
     d.onclick = () => {
-      document.querySelectorAll('#hubs button').forEach(x => { x.style.borderColor = '#e3e8ee'; x.style.background = '#fff'; });
-      d.style.borderColor = A; d.style.background = '#f0f6ff';
-      info.textContent = h.note;
+      document.querySelectorAll('.hub').forEach(x => x.classList.remove('active'));
+      d.classList.add('active');
+      info.textContent = h.code + ' — ' + h.note;
     };
     [grid.app](https://grid.app)endChild(d);
   });
-
-  // count-up numbers when scrolled into view
-  function animateCounter(el) {
-    const target = parseFloat(el.dataset.target);
-    const dec = parseInt(el.dataset.decimals || '0');
-    const dur = 1300, t0 = performance.now();
-    el.classList.add('count');
-    (function tick(t) {
-      const p = Math.min((t - t0) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = (target * eased).toFixed(dec);
-      if (p < 1) requestAnimationFrame(tick);
-      else { el.textContent = target.toFixed(dec); el.classList.add('pulse'); }
-    })(t0);
-  }
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        e.target.querySelectorAll('.counter:not(.count)').forEach(animateCounter);
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.3 });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  // stagger pipeline steps
-  const io2 = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.querySelectorAll('.step').forEach((s, i) => {
-        s.style.opacity = 0; s.style.transform = 'translateY(16px)'; s.style.transition = 'all .5s ease';
-        setTimeout(() => { s.style.opacity = 1; s.style.transform = 'none'; }, 150 * (i + 1));
-      });
-      io2.unobserve(e.target);
-    }
-  }), { threshold: 0.4 });
-  io2.observe(document.getElementById('pipeline'));
 })();
 </script>
 </body>
