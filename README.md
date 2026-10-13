@@ -1,5 +1,195 @@
 # PRC Data Challenge 2026 — team zestful-jewel
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi-Out Time Prediction — PRC 2026 Data Challenge</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    foreground: "hsl(215 28% 17%)", "muted-foreground": "hsl(215 15% 45%)",
+    border: "hsl(214 25% 88%)", card: "hsl(0 0% 100%)", "card-foreground": "hsl(215 28% 17%)",
+    primary: "hsl(217 91% 55%)", "primary-foreground": "hsl(0 0% 100%)",
+    secondary: "hsl(214 30% 94%)", "secondary-foreground": "hsl(215 28% 17%)",
+    muted: "hsl(214 30% 96%)"
+  }}}}
+</script>
+<style>
+  :root {
+    --primary: 217 91% 55%;
+    --muted-foreground: 215 15% 45%;
+    --border: 214 25% 88%;
+  }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: hsl(215 28% 17%); margin: 0; }
+  .h64 { height: 256px; }
+</style>
+</head>
+<body>
+<div class="max-w-4xl mx-auto px-6 py-10 space-y-8">
+
+  <div>
+    <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">EUROCONTROL PRC Data Challenge 2026 · Team zestful-jewel</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight">Predicting Taxi-Out Time of Departing Flights</h1>
+    <p class="mt-2" style="color: hsl(215 15% 45%)">A CatBoost pipeline trained on 12 months of EUROCONTROL ADR data — from a 607 RMSE baseline to a top-half finish.</p>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <span class="inline-flex items-center rounded-md text-sm font-medium px-3 py-1" style="background: hsl(217 91% 55%); color: #fff;">Final RMSE 288.75</span>
+      <span class="inline-flex items-center rounded-md text-sm font-medium px-3 py-1" style="background: hsl(214 30% 94%);">Rank 108 of 192</span>
+      <span class="inline-flex items-center rounded-md border text-sm px-3 py-1" style="border-color: hsl(214 25% 88%);">CatBoost · Kaggle GPU</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">RMSE improvement</p>
+      <p class="mt-2 text-2xl font-semibold">−52.4%</p>
+      <p class="mt-1 text-xs" style="color: hsl(215 15% 45%)">607.15 → 288.75</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">Leaderboard climb</p>
+      <p class="mt-2 text-2xl font-semibold">+68 places</p>
+      <p class="mt-1 text-xs" style="color: hsl(215 15% 45%)">rank 176 → 108</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">Training departures</p>
+      <p class="mt-2 text-2xl font-semibold">≈2.1M</p>
+      <p class="mt-1 text-xs" style="color: hsl(215 15% 45%)">12 months · 2025</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">Features / Models</p>
+      <p class="mt-2 text-2xl font-semibold">35 · 7</p>
+      <p class="mt-1 text-xs" style="color: hsl(215 15% 45%)">1 global + 6 airport models</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border p-6" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">Score journey (lower is better)</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">Best submission per team counts; 5 submissions used in total.</p>
+      <div class="mt-4 h64"><canvas id="scoreChart"></canvas></div>
+    </div>
+    <div class="rounded-lg border p-6" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">35 engineered features by group</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">All features are schedule-based — no post-off-block leakage.</p>
+      <div class="mt-4 h64"><canvas id="featureChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-semibold">Flight &amp; airport</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">Origin, destination, aircraft type, operator, market segment, runway, stand</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-semibold">Schedule &amp; timing</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">Cyclical hour/weekday/month encodings, IOBT/EOBT/ARVT offsets</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-semibold">Congestion</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">Departures &amp; arrivals per airport and per runway in the hour and ±1h window, queue position</p>
+    </div>
+    <div class="rounded-lg border p-5" style="border-color: hsl(214 25% 88%); background: #fff;">
+      <p class="text-sm font-semibold">Historical stats</p>
+      <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">Past median/mean taxi-out per airport×hour, runway×hour, and stand</p>
+    </div>
+  </div>
+
+  <div class="rounded-lg border p-6" style="border-color: hsl(214 25% 88%); background: #fff;">
+    <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">Model architecture</p>
+    <div class="mt-4 flex flex-col md:flex-row items-stretch gap-3">
+      <div class="flex-1 rounded-md p-4 text-sm" style="background: hsl(214 30% 96%);">
+        <p class="font-semibold">ADR data</p>
+        <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">12 monthly parquet files, DEP rows, raw target</p>
+      </div>
+      <div class="self-center" style="color: hsl(215 15% 45%);">→</div>
+      <div class="flex-1 rounded-md p-4 text-sm" style="background: hsl(214 30% 96%);">
+        <p class="font-semibold">Feature builder</p>
+        <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">35 features, 4 groups, leakage-safe</p>
+      </div>
+      <div class="self-center" style="color: hsl(215 15% 45%);">→</div>
+      <div class="flex-1 rounded-md p-4 text-sm" style="background: hsl(214 30% 96%);">
+        <p class="font-semibold">CatBoost models</p>
+        <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">1 global + LIRF · EGLL · LTFM · EHAM · LFPG · EDDF</p>
+      </div>
+      <div class="self-center" style="color: hsl(215 15% 45%);">→</div>
+      <div class="flex-1 rounded-md p-4 text-sm" style="background: hsl(214 30% 96%);">
+        <p class="font-semibold">Blend &amp; predict</p>
+        <p class="text-xs mt-1" style="color: hsl(215 15% 45%)">70% airport / 30% global for the 6 hubs</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-lg border p-6" style="border-color: hsl(214 25% 88%); background: #fff;">
+    <p class="text-sm font-medium" style="color: hsl(215 15% 45%)">How it works</p>
+    <ol class="mt-4 space-y-2 text-sm list-decimal list-inside">
+      <li>Load 12 months of EUROCONTROL ADR data (~2.1M departing flights).</li>
+      <li>Engineer 35 schedule-based features — flight attributes, timing, congestion, and month-by-month historical statistics.</li>
+      <li>Train a global CatBoost model plus 6 airport-specific models (Rome, London, Istanbul, Amsterdam, Paris, Frankfurt) on Kaggle GPU.</li>
+      <li>Blend 70/30 between airport and global models at the six hubs; global model everywhere else.</li>
+      <li>Validate with expanding-time folds, predict the held-out test set, and submit — the leaderboard keeps each team's best of 5 submissions.</li>
+    </ol>
+  </div>
+
+  <p class="text-xs text-center" style="color: hsl(215 15% 45%)">EUROCONTROL PRC Data Challenge 2026 · Sep – Oct 2026 · built by Mohammed Hassen · CatBoost, pandas, Kaggle GPU</p>
+</div>
+
+<script>
+(function () {
+  const primary = '217 91% 55%';
+  const muted = '215 15% 45%';
+  const border = '214 25% 88%';
+  const hsl = (v, a) => `hsl(${v}${a !== undefined ? ' / ' + a : ''})`;
+
+  Chart.defaults.color = hsl(muted);
+
+  new Chart(document.getElementById('scoreChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Baseline v1 (Sep 24)', 'Final model (Oct 9)'],
+      datasets: [{
+        data: [607.15, 288.75],
+        backgroundColor: [hsl(primary, 0.45), hsl(primary)],
+        hoverBackgroundColor: [hsl(primary, 0.45), hsl(primary)],
+        borderWidth: 0,
+        borderRadius: 6,
+        maxBarThickness: 90
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: hsl(border) } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('featureChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Flight & airport (10)', 'Schedule & timing (10)', 'Congestion (10)', 'Historical stats (5)'],
+      datasets: [{
+        data: [10, 10, 10, 5],
+        backgroundColor: [hsl(primary), hsl(primary, 0.72), hsl(primary, 0.48), hsl(primary, 0.3)],
+        hoverBackgroundColor: [hsl(primary), hsl(primary, 0.72), hsl(primary, 0.48), hsl(primary, 0.3)],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+    }
+  });
+})();
+</script>
+</body>
+</html>
+
 Predict taxi-out time (`TAXITIME_SEC_mvt`) for departures at 10 major European airports.
 
 ## Final model
