@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRC 2026 — Taxi-Out Prediction · Team zestful-jewel</title>
-<meta name="description" content="Results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, final RMSE 288.75, rank 108 of 192.">
+<meta name="description" content="Results demo: predicting taxi-out time of departing flights. EUROCONTROL PRC Data Challenge 2026, official final RMSE 390.31, rank 84.">
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #faf9f7; color: #1f2933; margin: 0; }
@@ -81,18 +81,18 @@
     <h1>Predicting taxi-out time of departing flights</h1>
     <p class="lead">A CatBoost pipeline trained on 12 months of EUROCONTROL ADR data — ~2.1 million departures — for the EUROCONTROL PRC Data Challenge 2026.</p>
     <div style="margin-top:20px">
-      <span class="badge blue">Final RMSE 288.75</span>
-      <span class="badge gray">Rank 108 / 192</span>
+      <a class="badge blue" href="https://prc-data-challenge-2026.netlify.app/ranking.html" target="_blank" rel="noopener" style="text-decoration:none">Official final RMSE 390.31</a>
+      <a class="badge gray" href="https://prc-data-challenge-2026.netlify.app/teams/zestful-jewel.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Rank 84</a>
       <span class="badge line">CatBoost · Kaggle GPU</span>
       <span class="badge line">35 features · 7 models</span>
     </div>
   </section>
 
   <section class="grid4">
-    <div class="card"><p class="label">RMSE improvement</p><p class="big">−52.4%</p><p class="label">607.15 → 288.75</p></div>
-    <div class="card"><p class="label">Leaderboard climb</p><p class="big">+68</p><p class="label">rank 176 → 108</p></div>
+    <div class="card"><p class="label">Official final RMSE</p><p class="big">390.31</p><p class="label">verified on the final leaderboard</p></div>
+    <div class="card"><p class="label">Initial RMSE</p><p class="big">607.15</p><p class="label">first reported submission</p></div>
     <div class="card"><p class="label">Training departures</p><p class="big">≈2.1M</p><p class="label">12 months · 2025</p></div>
-    <div class="card"><p class="label">Submissions</p><p class="big">5</p><p class="label">best one counts</p></div>
+    <div class="card"><p class="label">Models</p><p class="big">7</p><p class="label">1 global + 6 airport-specific</p></div>
   </section>
 
   <section class="grid2">
@@ -100,9 +100,9 @@
       <h2>Score journey <span class="muted" style="font-weight:400">— lower is better</span></h2>
       <div class="bars">
         <div class="bar" style="height:93%;background:#a9c6f3"><span>607.15</span></div>
-        <div class="bar" style="height:44%;background:#1a73e8"><span>288.75</span></div>
+        <div class="bar" style="height:60%;background:#1a73e8"><span>390.31</span></div>
       </div>
-      <div class="bar-labels"><div>First submission</div><div>Final submission</div></div>
+      <div class="bar-labels"><div>First submission</div><div>Official final</div></div>
     </div>
     <div class="card">
       <h2>Validation folds <span class="muted" style="font-weight:400">— expanding-window</span></h2>
@@ -178,6 +178,11 @@
     <a href="https://prc-data-challenge-2026.netlify.app/teams/zestful-jewel.html" target="_blank" rel="noopener">Team zestful-jewel</a>
     participant in the PRC Data Challenge 2026 — founder of
     <a href="https://liveearthmap.com" target="_blank" rel="noopener">Live Earth Map</a>.
+  </p>
+  <p style="margin-top:10px">
+    Other work:
+    <a href="https://liveearthmap.com/projects/prc-data-challenge-2026/" target="_blank" rel="noopener">PRC 2026 case study on Live Earth Map</a> ·
+    <a href="https://live-football-highlights.vercel.app/verdict-watch" target="_blank" rel="noopener">Verdict Watch — Premier League v Manchester City explained</a>
   </p>
 </footer>
 
